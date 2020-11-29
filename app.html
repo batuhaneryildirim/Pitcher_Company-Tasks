@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather App</title>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.12/dist/vue.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+    <!-- You MUST include jQuery before Fomantic -->
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.3.1/dist/jquery.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/fomantic-ui@2.8.7/dist/semantic.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/fomantic-ui@2.8.7/dist/semantic.min.js"></script>
+</head>
+
+<body>
+
+    <div id="app">
+        <div style="text-align: center;">
+            <h1 style="text-align: center">
+                {{ info['title'] ? 'Weather at ' + info['title'] : 'Welcome to Weather App!'}}</h1>
+            <div class="ui search centered">
+                <div style="text-align: center;">
+                    <div class="ui left icon input">
+                        <input class="prompt" type="text" placeholder="Search" v-model="queryText">
+                        <i class="search icon"></i>
+                    </div>
+                </div>
+                <div class="results centered"></div>
+            </div>
+        </div>
+
+        <br>
+        <br>
+        <br>
+
+        <div v-if="info['consolidated_weather']" style="color: blue; padding: 10px;">
+            <div class="ui cards">
+                <div class="card" v-for="weather in info['consolidated_weather'].slice(0, 5)">
+                    <div class="content">
+                        <div class="header">{{ weather['applicable_date'] }}</div>
+                        <div class="description">
+                            <b>Weather Condition: </b>{{ weather['weather_state_name'] }} <br>
+                            <b>Min :</b>{{ weather['min_temp'] }} <br>
+                            <b>Max :</b>{{ weather['max_temp'] }} <br>
+                            <b>Wind Speed :</b>{{ weather['wind_speed'] }}
+                        </div>
+                    </div>
+                    <div class="ui bottom attached button">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+
+        var app = new Vue({
+            el: '#app',
+            data: {
+                queryText: '',
+                info: ''
+            },
+            mounted() {     //bir kere yapılıyor
+                $('.ui.dropdown')
+                    .dropdown();  
+            },
+            watch: {
+                queryText: function (val) {
+                    $('.ui.search')
+                        .search({
+                            apiSettings: {
+                                url: 'https://cors-anywhere.herokuapp.com/https://www.metaweather.com/api/location/search/?query=' + this.queryText
+                            },
+                            fields: {
+                                results: 'title',
+                                title: 'title',
+                                url: '#'
+                            },
+                            onSelect: (params) => {
+                                console.log(params);
+                                axios
+                                    .get('https://cors-anywhere.herokuapp.com/https://www.metaweather.com/api/location/' + params['woeid'],
+                                )
+                                    .then(response => {
+                                        this.info = response['data'];
+                                        console.log(this.info);
+                                    })
+                            }
+                        })
+                        ;
+                }
+            }
+        })
+
+    </script>
+
+
+</body>
+
+</html>
